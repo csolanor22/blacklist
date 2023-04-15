@@ -45,6 +45,9 @@ def post():
     if "blocked_reason" in data:
         blocked_reason = data['blocked_reason']
 
+    if len(blocked_reason)>255:
+        blocked_reason = blocked_reason[0:255]
+
     new_email_black_list = BlackList(
         email = email,
         appUuid = app_uuid,
