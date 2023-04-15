@@ -65,9 +65,16 @@ def get_email(email):
     if request.headers['Authorization'] != token:
         return {'msg': 'token is not valid'}, 401
 
-    result = [black_list_schema.dump(emailBlocked) for emailBlocked in BlackList.query.filter(BlackList.email == email).all()]
-    print(result)
-    return jsonify(result), 200
+    # result = [black_list_schema.dump(emailBlocked) for emailBlocked in BlackList.query.filter(BlackList.email == email).all()]
+    result = BlackList.query.filter(BlackList.email == email).first()
+    blocked = False
+    reason = ''
+    if result is not None:
+        print("get_email: ", result)
+        blocked = True
+        reason = result.blockedReason
+    return {'blocked': blocked, 'blocked_reason': reason}, 200
+    # return jsonify(result), 200
 
 if __name__ == "__main__":
     application.run(port = 5000, debug = True)
