@@ -1,4 +1,4 @@
-import os
+import os, re
 from flask import Flask, jsonify, request
 from models import db, BlackList, BlackListSchema
 
@@ -31,15 +31,19 @@ def post():
         return {'msg': 'token is not valid'}, 401
     
     data = request.get_json()
-    if "app_uuid" not in data or "email" not in data :
-        return "Campos obligatorios sin diligenciar", 400
     
+    if "email" not in data or data['email'].strip()=='' or not re.match(r"^\S+@\S+\.\S+$", data['email']):
+        return {'msg': 'email parameter not valid'}, 400
+    if "app_uuid" not in data or data['app_uuid'].strip()=='':
+        return {'msg': 'app_uuid parameter not valid'}, 400
+        
     app_uuid = data['app_uuid']
     email = data['email']
+    ip_origin = request.remote_addr
+
     blocked_reason = ''
     if "blocked_reason" in data:
         blocked_reason = data['blocked_reason']
-    ip_origin = request.remote_addr
 
     new_email_black_list = BlackList(
         email = email,
