@@ -8,8 +8,11 @@ token = "Bearer bearer_token"
 application = Flask(__name__)
 application.config['PROPAGATE_EXCEPTIONS'] = True
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-application.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://"+ str(os.environ.get("RDS_USERNAME")) +":"+ str(os.environ.get("RDS_PASSWORD")) +"@"+ str(os.environ.get("RDS_HOSTNAME")) +":"+ str(os.environ.get("RDS_PORT")) +"/"+ str(os.environ.get("RDS_DB_NAME"))
-
+if "RDS_DB_NAME" in os.environ:
+    application.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://"+ str(os.environ.get("RDS_USERNAME")) +":"+ str(os.environ.get("RDS_PASSWORD")) +"@"+ str(os.environ.get("RDS_HOSTNAME")) +":"+ str(os.environ.get("RDS_PORT")) +"/"+ str(os.environ.get("RDS_DB_NAME"))
+else:
+    application.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///black-list.db"
+    application.config["TESTING"] = True
 app_context = application.app_context()
 app_context.push()
 
@@ -33,7 +36,9 @@ def post():
     
     app_uuid = data['app_uuid']
     email = data['email']
-    blocked_reason = data['blocked_reason']
+    blocked_reason = ''
+    if "blocked_reason" in data:
+        blocked_reason = data['blocked_reason']
     ip_origin = request.remote_addr
 
     new_email_black_list = BlackList(

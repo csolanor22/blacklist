@@ -1,0 +1,43 @@
+.coverage
+*.coverage
+*.out
+.pytest_cache
+*.pytest_cache
+
+*/dist
+/node_modules
+postgres/
+*package-lock.json
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+
+# Tests
+/coverage
+/.nyc_output
+
+.py_cache
+*.py_cache
+instance/
+.webassets-cache
+__pypackages__/
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.vscode
+
+black-list.db
+__pycache__/*
+models/__pycache__/*
