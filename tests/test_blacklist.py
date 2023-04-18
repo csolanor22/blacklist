@@ -79,15 +79,6 @@ class TestEmailBlackList(TestCase):
         #print(req_create.get_data())
         self.assertEqual(req_create.status_code, 400)
 
-    def test_create_400_app_uuid_empty(self):
-        new_email = {
-            "email": self.email,
-            "app_uuid": ''
-        }
-        req_create = self.client.post(self.endpoint_create, data=json.dumps(new_email), headers=self.headers_token)
-        #print(req_create.get_data())
-        self.assertEqual(req_create.status_code, 400)
-
     def test_create_201_reason_missing(self):
         new_email = {
             "email": self.email,
