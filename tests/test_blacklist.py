@@ -9,10 +9,6 @@ class TestEmailBlackList(TestCase):
         self.client = application.test_client()
         self.data_factory = Faker()
 
-        self.endpoint_health = '/'
-        self.endpoint_create = '/blacklists/'
-        self.endpoint_check = '/blacklists/'
-
         self.headers = {'Content-Type': 'application/json'}
         self.headers_token = {'Content-Type': 'application/json', "Authorization": "Bearer {}".format("bearer_token")}
         self.headers_token_not_valid = {'Content-Type': 'application/json', "Authorization": "Bearer {}".format("token")}
@@ -22,6 +18,10 @@ class TestEmailBlackList(TestCase):
         self.email_notvalid = self.data_factory.word()
         self.reason = self.data_factory.text()
 
+        self.endpoint_health = '/'
+        self.endpoint_create = '/blacklists/'
+        self.endpoint_check = '/blacklists/{}'.format(self.email)
+        self.endpoint_check_not_exist = '/blacklists/{}'.format(self.email_notvalid)
 
     def test_health(self):
         req_health = self.client.get(self.endpoint_health, headers = self.headers)
@@ -115,66 +115,36 @@ class TestEmailBlackList(TestCase):
         }
         req_create = self.client.post(self.endpoint_create, data=json.dumps(new_email), headers=self.headers_token)
         #print(req_create.get_data())
-        self.assertEqual(req_create.status_code, 201)
+        self.assertEqual(req_create.status_code, 201)        
+        
+    def test_check_400_token_not_in_header(self):
+        req = self.client.get(self.endpoint_check, headers=self.headers)
+        #print(req.get_data())
+        self.assertEqual(req.status_code, 400)
 
-'''
-    def test_get_404(self):
-        new_offer = {
-            "postId": self.data_factory.random_number(digits=3, fix_len=True),
-            "description": self.data_factory.text(),
-            "size": "MEDIUM",
-            "fragile": True, #self.data_factory.boolean,
-            "offer": self.data_factory.random_number(digits=3, fix_len=True)
+    def test_check_401_token_notvalid(self):
+        req = self.client.get(self.endpoint_check, headers=self.headers_token_not_valid)
+        #print(req.get_data())
+        self.assertEqual(req.status_code, 401)
+
+    def test_check_200_email_not_blocked(self):
+        req = self.client.get(self.endpoint_check_not_exist, headers=self.headers_token)
+        resp = json.loads(req.get_data())
+        self.assertEqual(req.status_code, 200)
+        self.assertFalse(resp["blocked"])
+
+    def test_check_200_email_blocked(self):
+        new_email = {
+            "email": self.email,
+            "app_uuid": self.uuid,
+            "blocked_reason": self.reason
         }
-        mock_token_validation.return_value = self.token_validation_resp
-        req_create = self.client.post(self.endpoint_create, data=json.dumps(new_offer), headers=self.headers_token)
-        resp_create = json.loads(req_create.get_data())
+        req_create = self.client.post(self.endpoint_create, data=json.dumps(new_email), headers=self.headers_token)
+        #print(req_create.get_data())
         self.assertEqual(req_create.status_code, 201)
 
-        endpoint_get = '/offers/{}000'.format(str(resp_create["id"])) 
-        req_get = self.client.get(endpoint_get, headers=self.headers_token)
-        json.loads(req_get.get_data())
-        self.assertEqual(req_get.status_code, 404)
-
-    def test_get_401_notvalid(self):
-        mock_token_validation.return_value = {'msg': 'not valid token', 'status_code': 401}
-        endpoint_get = '/offers/{}000'.format(str(self.data_factory.random_number(digits=3, fix_len=True))) 
-        req_get = self.client.get(endpoint_get, headers=self.headers_token)
-        json.loads(req_get.get_data())
-        self.assertEqual(req_get.status_code, 401)
-
-    def test_get_401_expired(self):
-        mock_token_validation.return_value = {'msg': 'expired token', 'status_code': 401}
-        endpoint_get = '/offers/{}000'.format(str(self.data_factory.random_number(digits=3, fix_len=True))) 
-        req_get = self.client.get(endpoint_get, headers=self.headers_token)
-        json.loads(req_get.get_data())
-        self.assertEqual(req_get.status_code, 401)
-
-    def test_get_400(self):
-        mock_token_validation.return_value = self.token_validation_resp
-        endpoint_get = '/offers/{}'.format("test") 
-        req_get = self.client.get(endpoint_get, headers=self.headers_token)
-        req_get.get_data()
-        self.assertEqual(req_get.status_code, 400)
-
-    def test_get_200(self):
-        new_offer = {
-            "postId": self.data_factory.random_number(digits=3, fix_len=True),
-            "description": self.data_factory.text(),
-            "size": "MEDIUM",
-            "fragile": True, #self.data_factory.boolean,
-            "offer": self.data_factory.random_number(digits=3, fix_len=True)
-        }
-        mock_token_validation.return_value = self.token_validation_resp
-        req_create = self.client.post(self.endpoint_create, data=json.dumps(new_offer), headers=self.headers_token)
-        resp_create = json.loads(req_create.get_data())
-        self.assertEqual(req_create.status_code, 201)
-
-        mock_token_validation.return_value = self.token_validation_resp
-        endpoint_get = '/offers/{}'.format(str(resp_create["id"])) 
-        req_get = self.client.get(endpoint_get, headers=self.headers_token)
-        resp_get = json.loads(req_get.get_data())
-        self.assertEqual(new_offer["postId"], resp_get["postId"])
-        self.assertEqual(new_offer["offer"], resp_get["offer"])
-        self.assertEqual(req_get.status_code, 200)
-'''
+        #print(self.endpoint_check)
+        req = self.client.get(self.endpoint_check, headers=self.headers_token)
+        resp = json.loads(req.get_data())
+        self.assertEqual(req.status_code, 200)
+        self.assertTrue(resp["blocked"])
