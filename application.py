@@ -70,7 +70,7 @@ def get_email(email):
     blocked = False
     reason = ''
     if result is not None:
-        print("get_email: ", result)
+        #print("get_email: ", result)
         blocked = True
         reason = result.blockedReason
     return {'blocked': blocked, 'blocked_reason': reason}, 200
