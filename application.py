@@ -21,7 +21,7 @@ db.create_all()
 
 @application.route("/")
 def index():
-    return "pong cambio ok"
+    return "pong cambio con test fallido"
 
 @application.route("/blacklists/", methods=['POST'])
 def post():
