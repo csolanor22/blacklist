@@ -155,5 +155,6 @@ class TestEmailBlackList(TestCase):
         self.assertEqual(req.status_code, 200)
         self.assertTrue(resp["blocked"])
     
-    def test_failled_test(self):
-        self.assertTrue(False)
+    # def test_failed_test(self):
+    #     print('Starting test_failed_test')
+    #     self.assertTrue(False)
